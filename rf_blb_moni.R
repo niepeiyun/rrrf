@@ -2,20 +2,21 @@ library(rpart)
 library(rpart.plot)
 library(randomForest)
 
-setwd('/Users/niepeiyun/Desktop/rf')
+setwd('/Users/niepeiyun/Documents/rrrf')
 source('predict_rf2.R')
+
 cicle_times=20
+
 time_count=0
 index_count=0
 gmean=c()
 
-M <- 500  #决策树数
-
-
+bag_num=50
+M <- 10  #决策树数
 for(sss in 1:cicle_times){
-  
-  
+
 a=Sys.time()
+
 
 
 data_num = 15000
@@ -32,31 +33,47 @@ data.train <- ALLDATA[findex, ] #总学习数据
 data.test <- ALLDATA[-findex,] #所有测试数据
 # 决策树声明一个具有模型，学习数据和用作成员变量的说明变量的类
 setClass("decisionTree", representation( model = "list", data.train = "data.frame", feature = "vector"))
+bag_count=train_num/bag_num
 
-trees <- list()
-for (i in 1:M){
-  #随机提取用于学习的数据
-  #index <- sample(nrow(data.train), nrow(data.train)*rate_of_usedata)
-  index <- sample(nrow(data.train),nrow(data.train),replace = T)
-  traindata_a_tree <- data.train[index,]
-  #随机选取解释变量
-  dec <- sample(feature_num, use_feature_num)
-  features <- c(1:ncol(ALLDATA))
-  features <- features[-dec]	
-  #用选定的说明变量创建训练数据
-  tree <- new("decisionTree")
-  tree@data.train  <- traindata_a_tree[features]
-  tree@feature  <- features
-  #学习选定的解释变量和学习数据
-  treeModel <- rpart(paste(CLASS_NAME, "~.", sep=""), data = tree@data.train, method = "class")
-  tree@model  <- list(treeModel)  #rpart返回列表，但是因为它不能被设置为decisionTree为什么它被存储在list $
-  #decisionTree在列表中存储类
-  trees <- c(trees, list(tree))
+index12=rep(0,4,1)
+
+ss=0
+for (i in 1:bag_num){
+  trees <- list()
+  index_unique=c()
+  index_bag=sample(train_num,train_num)
+  training_bag=data.train[index_bag[((i-1)*bag_count+1):((i)*bag_count)],]
+  for(j in 1:M){
+    #随机提取用于学习的数据
+    #index <- sample(nrow(data.train), nrow(data.train)*rate_of_usedata)
+    index <- sample(nrow(training_bag),nrow(training_bag),replace = T)
+    index_uni=sort(unique(index))
+    index_unique=c(index_unique,index)
+    traindata_a_tree <- training_bag[index_uni,]
+    #随机选取解释变量
+    dec <- sample(feature_num, use_feature_num)
+    features <- c(1:ncol(ALLDATA))
+    features <- features[-dec]	
+    #用选定的说明变量创建训练数据
+    tree <- new("decisionTree")
+    tree@data.train  <- as.data.frame(traindata_a_tree[features])
+    tree@feature  <- features
+    weight=table(index)
+    #学习选定的解释变量和学习数据
+    treeModel <- rpart(paste(CLASS_NAME, "~.", sep=""),weights = weight, data = tree@data.train, method = "class")
+    tree@model  <- list(treeModel)  #rpart返回列表，但是因为它不能被设置为decisionTree为什么它被存储在list $
+    #decisionTree在列表中存储类
+    trees <- c(trees, list(tree))
+  }
+  #index_unique=unique(index_unique)
+  #testing_bag=training_bag[-index_unique,]
+  testing_bag=data.test[index_bag[((i-1)*bag_count+1):((i)*bag_count)],]
+  rf.res <- rf_predict(trees, testing_bag)
+  ss=table(rf.res,as.character(testing_bag[,feature_num+1]))+ss
 }
 
 
 # 预测执行
-rf.res <- rf_predict(trees, data.test);
 
 # Crosstab
 # rf.evl = data.frame(rf.res)
@@ -67,8 +84,7 @@ rf.res <- rf_predict(trees, data.test);
 # }
 
 # print(table(rf.evl[,1],data.test[,5]))
-index12=rep(0,4,1)
-ss=table(rf.res,as.character(data.test[,feature_num+1]))
+
 print(ss)
 index12[2] =ss[2,2]/(ss[1,2]+ss[2,2])
 index12[3]=ss[1,1]/(ss[1,1]+ss[2,1])
@@ -76,10 +92,10 @@ index12[4]=(ss[1,1]+ss[2,2])/(ss[1,1]+ss[1,2]+ss[2,1]+ss[2,2])
 index12[1] =(index12[3]*index12[2])^0.5
 names(index12)=c("Gmeans","TPR","TNR","Overall Acurracy")
 print(paste('第',sss,'次模拟'))
+
 print(index12)
+
 print(Sys.time()-a)
-
-
 
 
 time_count=Sys.time()-a+time_count
@@ -93,4 +109,6 @@ print('--------------------------')
 print(paste('time:',time_count_final))
 print(paste('index:',index_count_final))
 print('--------------------------')
+
+
 

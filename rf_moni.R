@@ -1,19 +1,12 @@
-library(rpart)
-library(rpart.plot)
-library(randomForest)
+# library(rpart)
+# library(rpart.plot)
+# library(randomForest)
 
 setwd('/Users/niepeiyun/Desktop/rf')
 source('predict_rf2.R')
-cicle_times=20
-time_count=0
-index_count=0
-gmean=c()
 
 M <- 500  #决策树数
 
-
-for(sss in 1:cicle_times){
-  
   
 a=Sys.time()
 
@@ -75,22 +68,8 @@ index12[3]=ss[1,1]/(ss[1,1]+ss[2,1])
 index12[4]=(ss[1,1]+ss[2,2])/(ss[1,1]+ss[1,2]+ss[2,1]+ss[2,2])
 index12[1] =(index12[3]*index12[2])^0.5
 names(index12)=c("Gmeans","TPR","TNR","Overall Acurracy")
-print(paste('第',sss,'次模拟'))
 print(index12)
 print(Sys.time()-a)
 
 
-
-
-time_count=Sys.time()-a+time_count
-index_count=index12+index_count
-gmean=c(gmean,index12[1])
-}
-
-index_count_final=index_count/cicle_times
-time_count_final=time_count/cicle_times
-print('--------------------------')
-print(paste('time:',time_count_final))
-print(paste('index:',index_count_final))
-print('--------------------------')
 

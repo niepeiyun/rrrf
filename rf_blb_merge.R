@@ -1,11 +1,14 @@
-# library(rpart)
-# library(rpart.plot)
-# library(randomForest)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
 
 setwd('/Users/niepeiyun/Documents/rrrf')
 source('predict_rf2.R')
-bag_num=20
-M <- 25
+ALLDATA <- data_imit(data_num,1)
+
+gmean=c()
+bag_num=5
+M <- floor(500/bag_num)
 
 a=Sys.time()
 
@@ -14,7 +17,6 @@ a=Sys.time()
 data_num = 15000
 train_num <- data_num*2/3  #学习数据的总数量
 test_num <- data_num*1/3  #测试数据的总数
-ALLDATA <- data_imit(data_num,1)
 CLASS_NAME <- "y"
 CLASSES <- unique(ALLDATA[[CLASS_NAME]])
 feature_num <- ncol(ALLDATA)-1  #解释变量的数量
@@ -64,18 +66,6 @@ rf.res <- rf_predict(trees, data.test)
 ss=table(rf.res,as.character(data.test[,feature_num+1]))
 
 
-# 预测执行
-
-# Crosstab
-# rf.evl = data.frame(rf.res)
-# for(i in 1:nrow(as.array(rf.res))){
-#   pred_class = rf.res[[i]][2];
-#   ins <- data.frame(Species=c(pred_class[[1]]))
-#   rf.evl <- rbind(rf.evl, ins)
-# }
-
-# print(table(rf.evl[,1],data.test[,5]))
-
 print(ss)
 index12[2] =ss[2,2]/(ss[1,2]+ss[2,2])
 index12[3]=ss[1,1]/(ss[1,1]+ss[2,1])
@@ -86,8 +76,6 @@ names(index12)=c("Gmeans","TPR","TNR","Overall Acurracy")
 print(index12)
 
 print(Sys.time()-a)
-
-
 
 
 

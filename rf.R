@@ -1,19 +1,14 @@
-library(rpart)
-library(rpart.plot)
-library(randomForest)
+# library(rpart)
+# library(rpart.plot)
+# library(randomForest)
 
 setwd('/Users/niepeiyun/Desktop/rf')
 source('predict_rf2.R')
-cicle_times=20
-time_count=0
-index_count=0
-gmean=c()
+ALLDATA <- data_imit(data_num,1)
+
 
 M <- 500  #决策树数
 
-
-for(sss in 1:cicle_times){
-  
   
 a=Sys.time()
 
@@ -21,7 +16,6 @@ a=Sys.time()
 data_num = 15000
 train_num <- data_num*2/3  #学习数据的总数量
 test_num <- data_num*1/3  #测试数据的总数
-ALLDATA <- data_imit(data_num,1)
 CLASS_NAME <- "y"
 CLASSES <- unique(ALLDATA[[CLASS_NAME]])
 feature_num <- ncol(ALLDATA)-1  #解释变量的数量
@@ -75,22 +69,8 @@ index12[3]=ss[1,1]/(ss[1,1]+ss[2,1])
 index12[4]=(ss[1,1]+ss[2,2])/(ss[1,1]+ss[1,2]+ss[2,1]+ss[2,2])
 index12[1] =(index12[3]*index12[2])^0.5
 names(index12)=c("Gmeans","TPR","TNR","Overall Acurracy")
-print(paste('第',sss,'次模拟'))
 print(index12)
 print(Sys.time()-a)
 
 
-
-
-time_count=Sys.time()-a+time_count
-index_count=index12+index_count
-gmean=c(gmean,index12[1])
-}
-
-index_count_final=index_count/cicle_times
-time_count_final=time_count/cicle_times
-print('--------------------------')
-print(paste('time:',time_count_final))
-print(paste('index:',index_count_final))
-print('--------------------------')
 

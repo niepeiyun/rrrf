@@ -1,29 +1,11 @@
-# library(rpart)
-# library(rpart.plot)
-# library(randomForest)
-
-setwd('/Users/niepeiyun/Desktop/rf')
-source('predict_rf2.R')
-ALLDATA <- data_imit(data_num,1)
-
-
-M <- 500  #决策树数
-
-  
+rf=function(data.train,data.test,M){
 a=Sys.time()
 
 
-data_num = 15000
-train_num <- data_num*2/3  #学习数据的总数量
-test_num <- data_num*1/3  #测试数据的总数
 CLASS_NAME <- "y"
-CLASSES <- unique(ALLDATA[[CLASS_NAME]])
-feature_num <- ncol(ALLDATA)-1  #解释变量的数量
+CLASSES <- unique(data.train[[CLASS_NAME]])
+feature_num <- ncol(data.train)-1  #解释变量的数量
 use_feature_num <- as.integer(feature_num/2)  #用于学习的解释变量的数量
-#随机选择学习和测试数据
-findex <- sample(nrow(ALLDATA),train_num)
-data.train <- ALLDATA[findex, ] #总学习数据
-data.test <- ALLDATA[-findex,] #所有测试数据
 # 决策树声明一个具有模型，学习数据和用作成员变量的说明变量的类
 setClass("decisionTree", representation( model = "list", data.train = "data.frame", feature = "vector"))
 
@@ -46,11 +28,13 @@ for (i in 1:M){
   tree@model  <- list(treeModel)  #rpart返回列表，但是因为它不能被设置为decisionTree为什么它被存储在list $
   #decisionTree在列表中存储类
   trees <- c(trees, list(tree))
+  print
 }
 
 
 # 预测执行
-rf.res <- rf_predict(trees, data.test);
+rf.res <- rf_predict(trees, data.test,CLASSES);
+print(Sys.time()-a)
 
 # Crosstab
 # rf.evl = data.frame(rf.res)
@@ -69,8 +53,8 @@ index12[3]=ss[1,1]/(ss[1,1]+ss[2,1])
 index12[4]=(ss[1,1]+ss[2,2])/(ss[1,1]+ss[1,2]+ss[2,1]+ss[2,2])
 index12[1] =(index12[3]*index12[2])^0.5
 names(index12)=c("Gmeans","TPR","TNR","Overall Acurracy")
-print(index12)
-print(Sys.time()-a)
+return(index12)
+}
 
 
 

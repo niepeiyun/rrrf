@@ -45,7 +45,7 @@ data_imit=function(n,IR)
   f=rnorm(m,2,2)
   g=a+b+rnorm(m,0,1)
   c=d+e+f+g-a+rnorm(m,0,1)
-  uy=14*a-10*b-8*c+10*d-6*e-2*f+g*6+rnorm(m,0,30)
+  uy=14*a-10*b-8*c+10*d-6*e-2*f+g*6+rnorm(m,0,10)
   uy=1/(1+exp(-uy))
   for(i in 1:m)
   { 

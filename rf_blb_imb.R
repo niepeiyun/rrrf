@@ -18,7 +18,7 @@ blb_rf_imb=function(data.train,data.test,bag_num,M){
     neg_data=data.train[which(data.train$y=='no'),]
     training_bag=rbind(pos_data[((1-1)*(bag_count/2)+1):((1)*(bag_count/2)),],
                        neg_data[((i-1)*(bag_count/2)+1):((i)*(bag_count/2)),])
-    for(j in 1:M){
+    for(j in 1:M/bag_num){
       #随机提取用于学习的数据
       #index <- sample(nrow(data.train), nrow(data.train)*rate_of_usedata)
       index <- sample(nrow(training_bag),nrow(training_bag),replace = T)

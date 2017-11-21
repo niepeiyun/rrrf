@@ -34,6 +34,7 @@ for (i in 1:M){
 
 # 预测执行
 rf.res <- rf_predict(trees, data.test,CLASSES);
+c=Sys.time()-a
 print(Sys.time()-a)
 
 # Crosstab
@@ -47,13 +48,13 @@ print(Sys.time()-a)
 # print(table(rf.evl[,1],data.test[,5]))
 index12=rep(0,4,1)
 ss=table(rf.res,as.character(data.test[,feature_num+1]))
-print(ss)
 index12[2] =ss[2,2]/(ss[1,2]+ss[2,2])
 index12[3]=ss[1,1]/(ss[1,1]+ss[2,1])
 index12[4]=(ss[1,1]+ss[2,2])/(ss[1,1]+ss[1,2]+ss[2,1]+ss[2,2])
 index12[1] =(index12[3]*index12[2])^0.5
 names(index12)=c("Gmeans","TPR","TNR","Overall Acurracy")
-return(index12)
+print(index12)
+return(list(index12,c))
 }
 
 

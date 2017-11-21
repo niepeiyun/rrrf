@@ -16,25 +16,28 @@ index12=rep(0,4,1)
 ss=0
 for (i in 1:bag_num){
   trees <- list()
-  index_unique=c()
   index_bag=sample(train_num,train_num)
   training_bag=data.train[index_bag[((i-1)*bag_count+1):((i)*bag_count)],]
-  for(j in 1:M){
-    #随机提取用于学习的数据
+  for(j in 1:(M/bag_num)){
+    #随机提取 用于学习的数据
     #index <- sample(nrow(data.train), nrow(data.train)*rate_of_usedata)
-    index <- sample(nrow(training_bag),nrow(training_bag),replace = T)
-    traindata_a_tree <- training_bag[index,]
+    index <- sample(nrow(training_bag),train_num,replace = T)
+    index_uni=sort(unique(index))
+    traindata_a_tree <- training_bag[index_uni,]
     #随机选取解释变量
     dec <- sample(feature_num, use_feature_num)
     features <- c(1:ncol(ALLDATA))
     features <- features[-dec]	
     #用选定的说明变量创建训练数据
     tree <- new("decisionTree")
-    tree@data.train  <- as.data.frame(traindata_a_tree[features])
     tree@feature  <- features
-    weight=table(index)
+    weight=as.integer(table(index))
+    tree@data.train  <- as.data.frame(traindata_a_tree[features])
+    data_a_tree=as.data.frame(cbind(traindata_a_tree[features],weight=weight))
+    #tree@data.train  <- as.data.frame(cbind(traindata_a_tree[features],weight=weight))
     #学习选定的解释变量和学习数据
-    treeModel <- rpart(paste(CLASS_NAME, "~.", sep=""), data = tree@data.train, method = "class")
+    #feat=paste('~','colnames(tree@data.train)')
+    treeModel <- rpart(paste(CLASS_NAME, "~", paste(colnames(data_a_tree[1:(ncol(data_a_tree)-2)]),collapse="+"), sep=""),data = data_a_tree,weights = weight, method = "class")
     tree@model  <- list(treeModel)  #rpart返回列表，但是因为它不能被设置为decisionTree为什么它被存储在list $
     #decisionTree在列表中存储类
     trees <- c(trees, list(tree))
@@ -46,15 +49,16 @@ rf.res <- rf_predict(trees, data.test,CLASSES)
 ss=table(rf.res,as.character(data.test[,feature_num+1]))
 
 
-print(ss)
 index12[2] =ss[2,2]/(ss[1,2]+ss[2,2])
 index12[3]=ss[1,1]/(ss[1,1]+ss[2,1])
 index12[4]=(ss[1,1]+ss[2,2])/(ss[1,1]+ss[1,2]+ss[2,1]+ss[2,2])
 index12[1] =(index12[3]*index12[2])^0.5
 names(index12)=c("Gmeans","TPR","TNR","Overall Acurracy")
 print(Sys.time()-a)
+c=Sys.time()-a
+print(index12)
 
-return(index12)
+return(list(index12,c))
 
 }
 

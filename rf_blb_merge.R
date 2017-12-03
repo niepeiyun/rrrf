@@ -1,4 +1,4 @@
-blb_rf=function(data.train,data.test,bag_num,M){
+blb_rf_n=function(data.train,data.test,bag_num,M){
 gmean=c()
 a=Sys.time()
 
@@ -12,6 +12,8 @@ train_num=nrow(data.train)
 bag_count=train_num/bag_num
 
 index12=rep(0,4,1)
+imp=data.frame( row.names = paste('x',1:feature_num,sep=''),x = paste('x',1:feature_num,sep=''))
+
 
 ss=0
 for (i in 1:bag_num){
@@ -39,6 +41,7 @@ for (i in 1:bag_num){
     #feat=paste('~','colnames(tree@data.train)')
     treeModel <- rpart(paste(CLASS_NAME, "~", paste(colnames(data_a_tree[1:(ncol(data_a_tree)-2)]),collapse="+"), sep=""),data = data_a_tree,weights = weight, method = "class")
     tree@model  <- list(treeModel)  #rpart返回列表，但是因为它不能被设置为decisionTree为什么它被存储在list $
+    imp=merge(imp,data.frame(x=names(treeModel$variable.importance),importance=treeModel$variable.importance),by='x',all.x=T)
     #decisionTree在列表中存储类
     trees <- c(trees, list(tree))
   }
@@ -47,6 +50,8 @@ for (i in 1:bag_num){
 }
 rf.res <- rf_predict(trees, data.test,CLASSES)
 ss=table(rf.res,as.character(data.test[,feature_num+1]))
+
+importance=apply(imp[,-1],1,na_mean)
 
 
 index12[2] =ss[2,2]/(ss[1,2]+ss[2,2])
@@ -58,7 +63,7 @@ print(Sys.time()-a)
 c=Sys.time()-a
 print(index12)
 
-return(list(index12,c))
+return(list(index12,c,importance))
 
 }
 

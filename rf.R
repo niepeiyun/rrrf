@@ -8,6 +8,7 @@ feature_num <- ncol(data.train)-1  #解释变量的数量
 use_feature_num <- as.integer(feature_num/2)  #用于学习的解释变量的数量
 # 决策树声明一个具有模型，学习数据和用作成员变量的说明变量的类
 setClass("decisionTree", representation( model = "list", data.train = "data.frame", feature = "vector"))
+imp=data.frame( row.names = paste('x',1:feature_num,sep=''),x = paste('x',1:feature_num,sep=''))
 
 trees <- list()
 for (i in 1:M){
@@ -28,8 +29,8 @@ for (i in 1:M){
   tree@model  <- list(treeModel)  #rpart返回列表，但是因为它不能被设置为decisionTree为什么它被存储在list $
   #decisionTree在列表中存储类
   trees <- c(trees, list(tree))
-  print
-}
+  imp=merge(imp,data.frame(x=names(treeModel$variable.importance),importance=treeModel$variable.importance),by='x',all.x=T)
+  }
 
 
 # 预测执行
@@ -46,6 +47,8 @@ print(Sys.time()-a)
 # }
 
 # print(table(rf.evl[,1],data.test[,5]))
+importance=apply(imp[,-1],1,na_mean)
+
 index12=rep(0,4,1)
 ss=table(rf.res,as.character(data.test[,feature_num+1]))
 index12[2] =ss[2,2]/(ss[1,2]+ss[2,2])
@@ -54,7 +57,7 @@ index12[4]=(ss[1,1]+ss[2,2])/(ss[1,1]+ss[1,2]+ss[2,1]+ss[2,2])
 index12[1] =(index12[3]*index12[2])^0.5
 names(index12)=c("Gmeans","TPR","TNR","Overall Acurracy")
 print(index12)
-return(list(index12,c))
+return(list(index12,c,importance))
 }
 
 

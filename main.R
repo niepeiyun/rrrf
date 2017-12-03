@@ -8,19 +8,24 @@ source('predict_rf2.R')
 source('rf.R')
 source('rf_blb_imb.R')
 source('rf_blb_merge.R')
+source('rf_blb_var.R')
+
 time_all=c()
 index_all=data.frame()
 time_all_blb=c()
 index_all_blb=data.frame()
 
-for(j in 10){
+
   print(paste('This is the',j,'th cycle'))
-data_num = 10000*j*1.5
-data0<- data_imit(data_num,1)
+data_num = 1500
+a=Sys.time()
+data0<- data_high(data_num,1,1000)
 ALLDATA=data0[[1]]
 data.train=data0[[2]]
 data.test=data0[[3]]
 sum(is.na(ALLDATA$y))
+Sys.time()-a
+
 fit=rpart(y~.,data=data.train,method = 'class')
 ss=table(as.character(data.test$y),predict(fit,data.test,type = 'class'))
 index12=rep(0,4,1)
@@ -41,6 +46,10 @@ time_blb=0
 index_rf=0
 time_rf=0
 
+index=blb_rf_p(data.train,data.test ,bag_num ,M)
+index=rf(data.train,data.test )
+
+
 for (i in 1:20){
   print(paste('BLB_RF----------------------------------------------',i))
   
@@ -51,7 +60,7 @@ print(paste('RF--------------------------------------------------',i))
 index=rf(data.train,data.test  ,M)
 index_rf=index[[1]]+index_rf
 time_rf=index[[2]]+time_rf
-}
+
 time_all_blb=c(time_all_blb,as.numeric(time_blb)/20)
 index_all_blb=rbind(index_all_blb,index_blb/20)
 

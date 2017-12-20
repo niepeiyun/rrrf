@@ -14,11 +14,11 @@ source('rf_blb_np.R')
 ###########生成数据并测试##############
 
 data_num = 150000
-var_num=1000
+#var_num=1000
 a=Sys.time()
 # data0<- data_corr(data_num,1,var_num,0.5)
-
-data0<- data_high(data_num,1,var_num)
+set.seed(1)
+data0<- data_imit(data_num,1)
 ALLDATA=data0[[1]]
 data.train=data0[[2]]
 data.test=data0[[3]]
@@ -47,36 +47,47 @@ print(index12)
 
 ################模拟结果################
 
-M <- 100  #决策树数
+M <- 500  #决策树数
 bag_num<-5
 index_blb=0
 time_blb=0
 index_rf=0
 time_rf=0
 
-#index=blb_rf_np(data.train,data.test ,bag_num ,M)
-index=rf(data.train,data.test,M )
+index=rf(data.train,data.test ,M)
 
 
-for (i in 1:20){
-print(paste('BLB_RF----------------------------------------------',i))
+# 
+# index=blb_rf_np(data.train,data.test ,bag_num ,M)
+# index=rf(data.train,data.test,M )
+index_all_blb=c()
+time_all_blb=c()
+
+
+for (i in 1:10){
+  index_blb=0
+  time_blb=0
+  for(j in 1:2){
   
-index=blb_rf(data.train,data.test ,bag_num ,M)
-index_blb=index[[1]]+index_blb
-time_blb=index[[2]]+time_blb
-print(paste('RF--------------------------------------------------',i))
-index=rf(data.train,data.test  ,M)
-index_rf=index[[1]]+index_rf
-time_rf=index[[2]]+time_rf
-
-time_all_blb=c(time_all_blb,as.numeric(time_blb)/20)
-index_all_blb=rbind(index_all_blb,index_blb/20)
-
-time_all=c(time_all,as.numeric(time_rf)/20)
-index_all=rbind(index_all,index_rf/20)
+  print(paste('BLB_RF----------------------------------------------',i))
+  M=100*i
+  bag_num<-10*i
+  index=blb_rf_n(data.train,data.test ,bag_num ,M)
+  index_blb=index[[1]]+index_blb
+  time_blb=index[[2]]+time_blb
+  # print(paste('RF--------------------------------------------------',i))
+  # index=rf(data.train,data.test  ,M)
+  # index_rf=index[[1]]+index_rf
+  # time_rf=index[[2]]+time_rf
+  # 
+  
+  # time_all=c(time_all,as.numeric(time_rf)/20)
+  # index_all=rbind(index_all,index_rf/20)
+  }
+  time_all_blb=c(time_all_blb,as.numeric(time_blb)/2)
+  index_all_blb=rbind(index_all_blb,index_blb/2)
+  
 }
-
-
 
 # index=blb_rf_imb(data.train,data.test,5,M/5) 
 # print(index)

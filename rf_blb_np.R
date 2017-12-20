@@ -13,24 +13,16 @@ blb_rf_np=function(data.train,data.test,bag_num,M){
   
   clust=5
   cluster=kmeans(t(data.train[,-ncol(data.train)]),clust)
-  rf_fit=blb_rf(data.train ,data.test,bag_num,M)
-  
-  #rpart_fit= rpart(y~.,data = data.train, method = "class")
-  #rpart_imp=data.frame(x=names(rpart_fit$variable.importance),imp=rpart_fit$variable.importance)
-  rpart_imp=data.frame(x=paste('x',1:(ncol(data.train)-1),sep=''),imp=rf_fit[[3]])
-  cluster_x=data.frame(x=names(cluster$cluster),imp=cluster$cluster,f=1:length(cluster$cluster))
-  cluster_imp=merge(cluster_x,rpart_imp,by='x',all.x = T)
-  cluster_imp$imp.y[is.na(cluster_imp$imp.y)]=0
   select_var=c()
   for(i in 1:clust){
-    cluster_i=cluster_imp[cluster_imp$imp.x==i,]
-    select_i=sample(cluster_i$f,(ncol(data.train)-1)/100,prob = cluster_i$imp.y/sum(cluster_i$imp.y))
-    select_var=c(select_var,select_i)
-    # select_i=cluster_i[order(-cluster_i$imp.y),]
-    # select_var=c(select_var,select_i$f[1:5])
+    cluster_data=data.frame(data.train[,which(cluster$cluster==i)],y=data.train$y)
+    rf_fit=randomForest(y~.,data=cluster_data)
+    select_x=sample(which(cluster$cluster==i),(ncol(data.train)-1)/100,prob = importance(rf_fit)/sum(importance(rf_fit)))
+    select_var=c(select_var,select_x)
   }
+  
   feature_num <- length(select_var) #解释变量的数量
-  imp=data.frame( row.names = paste('x',1:feature_num,sep=''),x = paste('x',1:feature_num,sep=''))
+  imp=data.frame( row.names = paste('x',select_var,sep=''),x = paste('x',select_var,sep=''))
   
   
   ss=0
@@ -56,19 +48,20 @@ blb_rf_np=function(data.train,data.test,bag_num,M){
       #tree@data.train  <- as.data.frame(cbind(traindata_a_tree[features],weight=weight))
       #学习选定的解释变量和学习数据
       #feat=paste('~','colnames(tree@data.train)')
-      treeModel <- rpart(paste(CLASS_NAME, "~", paste(colnames(tree@data.train[1:(ncol(data_a_tree)-2)]),collapse="+"), sep=""),data = tree@data.train,weights = weight, method = "class")
+      treeModel <- rpart(paste(CLASS_NAME, "~", paste(colnames(tree@data.train[1:(ncol(tree@data.train)-2)]),collapse="+"), sep=""),data = tree@data.train,weights = weight, method = "class")
       tree@model  <- list(treeModel)  #rpart返回列表，但是因为它不能被设置为decisionTree为什么它被存储在list $
       imp=merge(imp,data.frame(x=names(treeModel$variable.importance),importance=treeModel$variable.importance),by='x',all.x=T)
       #decisionTree在列表中存储类
       trees <- c(trees, list(tree))
     }
+    print(paste('bag:',i))
     #index_unique=unique(index_unique)
     #testing_bag=training_bag[-index_unique,]
   }
   rf.res <- rf_predict(trees, data.test,CLASSES)
   ss=table(rf.res,as.character(data.test[,ncol(data.train)]))
   
-  importance=apply(imp[,-1],1,na_mean)
+  importance=data.frame(data=imp$x,imp=apply(imp[,-1],1,na_mean))
   
   
   index12[2] =ss[2,2]/(ss[1,2]+ss[2,2])

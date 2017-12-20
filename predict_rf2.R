@@ -30,6 +30,7 @@ vote=function(result)
 data_imit=function(n,IR)
 {
   m=2.5*n
+  set.seed(1)
   pro=1-IR/(IR+1)
   posn=round(pro*n)
   negn=n-posn
@@ -68,43 +69,29 @@ data_imit=function(n,IR)
 
 data_high=function(n,IR,var_num)
 {
-  m=2.5*n
+  set.seed(1)
+  m=1.5*n
   pro=1-IR/(IR+1)
   posn=round(pro*n)
   negn=n-posn
   www=0
   jjj=0
-  sss=data.frame()
-  uy=rnorm(m,0,2000)
+  uy=rnorm(m,0,20000000)
   para=rnorm(var_num,0,5)
-  vector=rnorm(m*var_num,1:var_num,abs(para))
+  vector=rnorm(m*var_num,(1:var_num-(var_num/2)),abs(para))
   mat=matrix(vector,ncol=var_num,byrow=T)
-  coef=rnorm(var_num,0,5)
-  mat_coef=mat*coef
-  for(i in 1:var_num)
-  {
-    var_i=rnorm(m,i,abs(para[i]))
-    uy=uy+var_i*rnorm(1,0,1)
-    sss=rbind(sss,var_i)
-    print(i)
-  }
+  coef=rnorm(var_num,0,1)
+  coef_mat=matrix(rep(coef,m),ncol=var_num,byrow=T)
+  mat_coef=mat*coef_mat
+  uy=apply(mat_coef,1,sum)+uy
   uy=1/(1+exp(-uy))
-  colnames(sss)=1:m
-  y=c()
-  for(i in 1:m)
-  { 
-    if(rbinom(1,1,uy[i])>0.5)
-    {
-      y[i]="yes"
-    }
-    else
-    {y[i]="no"}
-  }
+  mat_coef=as.data.frame(mat_coef)
+  y=rbinom(m,1,uy)
+  y[which(y==0)]='no'
+  y[which(y==1)]='yes'
   sy=as.data.frame(y)
-  row.names(sy)=1:m
-  sss=as.data.frame(t(sss))
-  colnames(sss)=paste('x',1:var_num,sep='')
-  sss=cbind(sss,y=sy)
+  colnames(mat_coef)=paste('x',1:var_num,sep='')
+  sss=cbind(mat_coef,y=sy)
   jjj=sss[which(sss$y=="yes"),]
   www=sss[which(sss$y=="no"),]
   ALLDATA=rbind(jjj[1:posn,],www[1:negn,])
@@ -118,5 +105,39 @@ na_mean=function(x){
   cc=mean(x,na.rm=TRUE)
   return(cc)
 }
-  
+
+data_corr=function(n,IR,var_num,cor)
+{
+  set.seed(1)
+  m=1.5*n
+  pro=1-IR/(IR+1)
+  posn=round(pro*n)
+  negn=n-posn
+  www=0
+  jjj=0
+  uy=rnorm(m,0,20000000)
+  correlation=matrix(cor,ncol=var_num,nrow = var_num)
+  diag(correlation)=1
+  mat=mvrnorm(n = m, rep(0,var_num), correlation)
+  #mat=mvrnorm(n = m, 1:var_num, correlation)
+  coef=rnorm(var_num,0,1)
+  coef_mat=matrix(rep(coef,m),ncol=var_num,byrow=T)
+  mat_coef=mat*coef_mat
+  uy=apply(mat_coef,1,sum)+uy
+  uy=1/(1+exp(-uy))
+  mat_coef=as.data.frame(mat_coef)
+  y=rbinom(m,1,uy)
+  y[which(y==0)]='no'
+  y[which(y==1)]='yes'
+  sy=as.data.frame(y)
+  colnames(mat_coef)=paste('x',1:var_num,sep='')
+  sss=cbind(mat_coef,y=sy)
+  jjj=sss[which(sss$y=="yes"),]
+  www=sss[which(sss$y=="no"),]
+  ALLDATA=rbind(jjj[1:posn,],www[1:negn,])
+  data.train=rbind(jjj[1:floor(posn*2/3),],www[1:floor(negn*2/3),])
+  data.test=rbind(jjj[1:floor(posn/3),],www[1:floor(negn/3),])
+  aaa=list(ALLDATA,data.train,data.test)
+  return(aaa)
+}  
   

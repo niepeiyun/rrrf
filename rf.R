@@ -12,6 +12,7 @@ imp=data.frame( row.names = paste('x',1:feature_num,sep=''),x = paste('x',1:feat
 
 trees <- list()
 for (i in 1:M){
+  print(paste('tree:',i))
   #随机提取用于学习的数据
   #index <- sample(nrow(data.train), nrow(data.train)*rate_of_usedata)
   index <- sample(nrow(data.train),nrow(data.train),replace = T)

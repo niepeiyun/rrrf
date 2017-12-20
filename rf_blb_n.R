@@ -45,6 +45,7 @@ for (i in 1:bag_num){
     #decisionTree在列表中存储类
     trees <- c(trees, list(tree))
   }
+  print(paste('bag',i))
   #index_unique=unique(index_unique)
   #testing_bag=training_bag[-index_unique,]
 }
